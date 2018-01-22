@@ -3,5 +3,5 @@
 
 Sorry for typo;;
 
-
-[]
+Release (Download)
+[(https://github.com/KYHSGeekCode/SynAnt/releases)]
