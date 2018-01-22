@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:gravity="top|center_horizontal"
+	android:orientation="vertical">
+
+	<ScrollView
+		android:layout_height="fill_parent"
+		android:layout_width="fill_parent">
+
+		<LinearLayout
+			android:layout_height="wrap_content"
+			android:layout_width="fill_parent"
+			android:orientation="vertical">
+
+			<TextView
+				android:layout_height="wrap_content"
+				android:text="동반의어 batch 사전"
+				android:textAppearance="?android:attr/textAppearanceMedium"
+				android:layout_width="wrap_content"
+				android:textSize="50sp"/>
+
+			<EditText
+				android:layout_height="wrap_content"
+				android:inputType="textMultiLine"
+				android:ems="10"
+				android:layout_width="fill_parent"
+				android:id="@+id/inputText"
+				android:text="본문을 입력하세요"/>
+
+			<EditText
+				android:layout_height="wrap_content"
+				android:inputType="textMultiLine"
+				android:ems="10"
+				android:layout_width="fill_parent"
+				android:id="@+id/resultText"
+				android:text="결과"/>
+
+			<LinearLayout
+				android:layout_height="wrap_content"
+				android:layout_width="wrap_content"
+				android:orientation="horizontal">
+
+				<Button
+					android:layout_height="wrap_content"
+					android:text="시작"
+					android:layout_width="wrap_content"
+					android:id="@+id/startButton"/>
+
+				<Button
+					android:layout_height="wrap_content"
+					android:text="내보내기"
+					android:layout_width="wrap_content"
+					android:id="@+id/exportButton"/>
+
+			</LinearLayout>
+
+			<TextView
+				android:text="@string/data"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:background="#FF1102"
+				android:textColor="#FFFFFF"
+				android:textSize="20sp"/>
+
+		</LinearLayout>
+
+	</ScrollView>
+
+</LinearLayout>
+
