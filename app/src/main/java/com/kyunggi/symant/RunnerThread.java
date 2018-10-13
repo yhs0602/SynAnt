@@ -9,12 +9,11 @@ package com.kyunggi.symant;
  }
  4.결과를취합하여 export
 
- 5. 이 프로그램은 악용되어 내신에 더 악랄한 동반의어 출제에 사용되고 찍신들의 등급을 책임진다.
- 6.찍신 승
  */
 //메모리는 얼마나먹을까
 
 import android.os.*;
+import android.util.*;
 import android.widget.*;
 import java.io.*;
 import java.net.*;
@@ -22,12 +21,15 @@ import java.util.*;
 import org.jsoup.*;
 import org.jsoup.nodes.*;
 import org.jsoup.select.*;
+import java.util.regex.*;
 
 
 public class RunnerThread extends Thread
 {
 	String _text;
 	MainActivity mainActivity;
+
+	private String TAG="SynAnt runner";
 	public RunnerThread(MainActivity c, String __text)
 	{
 		_text = __text;
@@ -67,7 +69,7 @@ public class RunnerThread extends Thread
 				String stackTraceString = out.toString(); // 찍은 값을 가져오고.
 				message = stackTraceString; //Toast.makeText(mainActivity, stackTraceString, 10).show();//보여 준다
 				handler.sendEmptyMessage(0);
-
+				Log.e(TAG,"",e);
 			}
 		}
 		else
@@ -76,6 +78,7 @@ public class RunnerThread extends Thread
 			for(String w:words)
 			{
 				i++;
+				Log.v(TAG,"processing word:"+w);
 				mainActivity.OnProgress(i,words.size());
 				try
 				{
@@ -86,14 +89,12 @@ public class RunnerThread extends Thread
 				catch (Exception e)
 				{
 					ByteArrayOutputStream out = new ByteArrayOutputStream();
-					PrintStream pinrtStream = new PrintStream(out);
-					//e.printStackTrace()하면 System.out에 찍는데,
-					// 출력할 PrintStream을 생성해서 건네 준다
-					e.printStackTrace(pinrtStream);
-					String stackTraceString = out.toString(); // 찍은 값을 가져오고.
+					PrintStream printStream = new PrintStream(out);
+					e.printStackTrace(printStream);
+					String stackTraceString = out.toString();
 					message = stackTraceString; //Toast.makeText(mainActivity, stackTraceString, 10).show();//보여 준다
 					//handler.sendEmptyMessage(0);
-
+					Log.e(TAG,"",e);
 				}
 
 			}
@@ -138,6 +139,7 @@ public class RunnerThread extends Thread
 			//Toast.makeText(mainActivity,
 			message = "엥?";//,1).show();
 			handler.sendEmptyMessage(0);
+			Log.e(TAG,"",e);
 		}
 		return r;
 	}
@@ -150,20 +152,36 @@ public class RunnerThread extends Thread
 		try
 		{
 			Document doc=Jsoup.connect(q).get();
-			Elements elems=doc.select(".synonyms");
-			Element mean=doc.select(".mean").first();
-			String syns=elems.text();
-			syns=syns.replaceAll("유의어","");
+			//Log.v(TAG,"doc="+doc.html());
+			//Elements elems=doc.select(".");
+			//Log.v(TAG,"elems="+elems.text());
+			//Element mean=doc.select(".mean").first();
+			//Log.v(TAG,"mean="+mean.text());
+			//String syns=elems.html();
+			//Log.v(TAG,"syns="+syns);
+			//syns=syns.replaceAll("유의어","");
 			r.word = w;
-			r.kor = mean.text().replaceAll(w,"");
+			r.kor ="";// mean.text().replaceAll(w,"");
 			r.syns = new String[1];
-			r.syns[0] = syns;
+			r.syns[0] ="";// syns;
+			
+			String str=doc.text();
+			Log.v(TAG,str);
+			str=str.replaceAll("예문 TTS 발음듣기","");
+			String [] toks=str.split(Pattern.quote("[유의어]"));
+			int len=toks.length;
+			if(len>2)
+			{
+				r.syns=new String[len-2];
+				System.arraycopy(toks,1,r.syns,0,len-2);
+			}
 		}
 		catch (IOException e)
 		{
 			//Toast.makeText(mainActivity,
 			message = "네트워크 상태를 확인해 주세요.";//,1).show();
 			handler.sendEmptyMessage(0);
+			Log.e(TAG,"",e);
 		}
 
 		return r;
@@ -215,7 +233,7 @@ public class RunnerThread extends Thread
 	}
 	String CreateQueryString(String w)
 	{
-		return new String("http://m.endic.naver.com/search.nhn?query=") + w + "&searchOption=thesaurus";
+		return new String("https://endic.naver.com/search.nhn?query=") + w + "&searchOption=thesaurus";
 	}
 	class Result
 	{

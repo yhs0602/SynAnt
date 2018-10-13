@@ -1,20 +1,21 @@
 package com.kyunggi.symant;
 
 import android.app.*;
-
 import android.net.*;
 import android.os.*;
+import android.util.*;
 import android.view.*;
 import android.view.View.*;
 import android.widget.*;
 import java.io.*;
-import java.util.*;
 import java.text.*;
+import java.util.*;
 
 public class MainActivity extends Activity implements OnClickListener
 {
-
 	public boolean btest;
+
+	private String TAG="SynAnt";
 
 	@Override
 	public void onClick(View p1)
@@ -76,13 +77,11 @@ public class MainActivity extends Activity implements OnClickListener
 			catch (Exception e)
 			{
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				PrintStream pinrtStream = new PrintStream(out);
-				//e.printStackTrace()하면 System.out에 찍는데,
-				// 출력할 PrintStream을 생성해서 건네 준다
-				e.printStackTrace(pinrtStream);
+				PrintStream printStream = new PrintStream(out);
+				e.printStackTrace(printStream);
 				String stackTraceString = out.toString(); // 찍은 값을 가져오고.
 				Toast.makeText(this, stackTraceString, 2).show();//보여 준다
-
+				Log.e(TAG,"",e);
 			}
 		}
 		else if (b == exportButton)
@@ -124,6 +123,7 @@ public class MainActivity extends Activity implements OnClickListener
 			}
 			catch (Exception e)
 			{
+				Log.e(TAG,"",e);
 				//e.printStackTrace() ;
 			}
 
@@ -137,13 +137,14 @@ public class MainActivity extends Activity implements OnClickListener
 				}
 				catch (Exception e)
 				{
+					Log.e(TAG,"",e);
 					//e.printStackTrace();
 				}
 			}
 			Toast.makeText(this,fnam+"에 저장 성공.",2).show();
 		}
 	}
-		RunnerThread runner;
+	RunnerThread runner;
 	public boolean isDoing=false;
 	boolean isDone=false;
     @Override
@@ -159,6 +160,14 @@ public class MainActivity extends Activity implements OnClickListener
 		exportButton.setOnClickListener(this);
 		isDoing = false;
 		isDone = false;
+		try
+		{
+			System.setErr(new PrintStream(new File("/sdcard/synant_log.txt")));
+		}
+		catch (FileNotFoundException e)
+		{
+			Log.e(TAG,"log redirect failed",e);
+		}
     }
 	EditText inputTextEdit;
 	EditText resultTextEdit;
@@ -197,7 +206,7 @@ public class MainActivity extends Activity implements OnClickListener
 		String tot=new String();
 		for (RunnerThread.Result r:runner.results)
 		{
-			String oneresult=r.word + "(" + r.kor + ")" + ":" + r.syns[0];
+			String oneresult=r.word + "(" + r.kor + ")" + ":" + Arrays.toString( r.syns);
 			tot += oneresult;
 			tot += "\n";
 		}
@@ -218,17 +227,7 @@ public class MainActivity extends Activity implements OnClickListener
             });
 		isDone = true;
 		//}
-		/*catch (Exception e)
-		 {
-		 ByteArrayOutputStream out = new ByteArrayOutputStream();
-		 PrintStream pinrtStream = new PrintStream(out);
-		 //e.printStackTrace()하면 System.out에 찍는데,
-		 // 출력할 PrintStream을 생성해서 건네 준다
-		 e.printStackTrace(pinrtStream);
-		 String stackTraceString = out.toString(); // 찍은 값을 가져오고.
-		 //Toast.makeText(this, stackTraceString, 10).show();//보여 준다
-
-		 }*/
+		
 
 	}
 	public boolean isExternalStorageWritable()
