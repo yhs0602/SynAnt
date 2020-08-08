@@ -3,5 +3,13 @@
 
     <string name="app_name">SynAnt</string>
     <string name="data">wifi에 연결하지 않으면 데이터 요금이 발생할 수 있습니다.</string>
+    <string name="already_working">이미 하는 중입니다.</string>
+    <string name="write_article_here">본문을 입력하세요.</string>
+    <string name="result_placeholder">결과</string>
+    <string name="check_network">네트워크 연결을 확인하세요.</string>
+    <string name="warn_network_fee">데이터 요금이 발생할 수 있습니다.</string>
+    <string name="started">시작됨.</string>
+    <string name="not_ready">아직 완료되지 않았습니다.</string>
+    <string name="fail_write_file">파일 기록에 문제가 있습니다.</string>
 
 </resources>

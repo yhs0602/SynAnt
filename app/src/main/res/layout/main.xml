@@ -23,20 +23,20 @@
 				android:textSize="50sp"/>
 
 			<EditText
-				android:layout_height="wrap_content"
-				android:inputType="textMultiLine"
-				android:ems="10"
-				android:layout_width="fill_parent"
 				android:id="@+id/inputText"
-				android:text="본문을 입력하세요"/>
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:ems="10"
+				android:hint="@string/write_article_here"
+				android:inputType="textMultiLine" />
 
 			<EditText
-				android:layout_height="wrap_content"
-				android:inputType="textMultiLine"
-				android:ems="10"
-				android:layout_width="fill_parent"
 				android:id="@+id/resultText"
-				android:text="결과"/>
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:ems="10"
+				android:hint="@string/result_placeholder"
+				android:inputType="textMultiLine" />
 
 			<LinearLayout
 				android:layout_height="wrap_content"

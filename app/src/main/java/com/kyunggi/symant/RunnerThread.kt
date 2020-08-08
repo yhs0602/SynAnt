@@ -1,7 +1,5 @@
 package com.kyunggi.symant
 
-import android.os.Handler
-import android.os.Message
 import android.util.Log
 import android.widget.Toast
 import org.jsoup.Jsoup
@@ -23,17 +21,13 @@ import java.util.regex.Pattern
 
  */
 //메모리는 얼마나먹을까
-class RunnerThread(var mainActivity: MainActivity, var _text: String) : Thread() {
+class RunnerThread(val mainActivity: MainActivity, var _text: String) : Thread() {
     private val TAG = "SynAnt runner"
-    override fun run() {
-        // TODO: Implement this method
-        super.run()
-        Run(_text)
-    }
 
     var words: Set<String>? = null
     var results: ArrayList<Result>? = null
-    fun Run(text: String): Int {
+    override fun run() {
+        val text = _text
         //handler.sendEmptyMessage(0);
         words = ParseBook(text)
         mainActivity.OnFinishParse(words!!.size)
@@ -46,12 +40,11 @@ class RunnerThread(var mainActivity: MainActivity, var _text: String) : Thread()
             } catch (e: Exception) {
                 val out = ByteArrayOutputStream()
                 val pinrtStream = PrintStream(out)
-                //e.printStackTrace()하면 System.out에 찍는데,
-                // 출력할 PrintStream을 생성해서 건네 준다
                 e.printStackTrace(pinrtStream)
                 val stackTraceString = out.toString() // 찍은 값을 가져오고.
-                message = stackTraceString //Toast.makeText(mainActivity, stackTraceString, 10).show();//보여 준다
-                handler.sendEmptyMessage(0)
+                mainActivity.runOnUiThread {
+                    Toast.makeText(mainActivity, stackTraceString, Toast.LENGTH_SHORT).show()
+                }
                 Log.e(TAG, "", e)
             }
         } else {
@@ -59,28 +52,23 @@ class RunnerThread(var mainActivity: MainActivity, var _text: String) : Thread()
             for (w in words!!) {
                 i++
                 Log.v(TAG, "processing word:$w")
-                mainActivity.OnProgress(i, words!!.size)
+                mainActivity.onProgress(i, words!!.size)
                 try {
                     //String response=Query(q);
-                    val result = QueryBySoup(w) //ParseResponse(response);
+                    val result = queryBySoup(w) //ParseResponse(response);
                     results!!.add(result)
                 } catch (e: Exception) {
                     val out = ByteArrayOutputStream()
                     val printStream = PrintStream(out)
                     e.printStackTrace(printStream)
-                    val stackTraceString = out.toString()
-                    message = stackTraceString //Toast.makeText(mainActivity, stackTraceString, 10).show();//보여 준다
-                    //handler.sendEmptyMessage(0);
                     Log.e(TAG, "", e)
                 }
             }
         }
         mainActivity.OnFinish()
-        return 0
     }
 
     private fun SoupTest(): Result {
-        // TODO: Implement this method
         val r = Result()
         try {
             val file = File("/storage/emulated/0/happy.html", "")
@@ -109,16 +97,16 @@ class RunnerThread(var mainActivity: MainActivity, var _text: String) : Thread()
 			*/
         } catch (e: IOException) {
             //Toast.makeText(mainActivity,
-            message = "엥?" //,1).show();
-            handler.sendEmptyMessage(0)
+            mainActivity.runOnUiThread {
+                Toast.makeText(mainActivity, "엥", Toast.LENGTH_SHORT).show()
+            }
             Log.e(TAG, "", e)
         }
         return r
     }
 
-    private fun QueryBySoup(w: String): Result {
-        // TODO: Implement this method
-        val q = CreateQueryString(w)
+    private fun queryBySoup(w: String): Result {
+        val q = createQueryString(w)
         val r = Result()
         try {
             val doc = Jsoup.connect(q).get()
@@ -145,8 +133,9 @@ class RunnerThread(var mainActivity: MainActivity, var _text: String) : Thread()
             }
         } catch (e: IOException) {
             //Toast.makeText(mainActivity,
-            message = "네트워크 상태를 확인해 주세요." //,1).show();
-            handler.sendEmptyMessage(0)
+            mainActivity.runOnUiThread{
+                Toast.makeText(mainActivity, "네트워크 상태를 확인해 주세요.", Toast.LENGTH_SHORT).show()
+            }
             Log.e(TAG, "", e)
         }
         return r
@@ -157,7 +146,7 @@ class RunnerThread(var mainActivity: MainActivity, var _text: String) : Thread()
         val words = text.split(" ".toRegex()).toTypedArray()
         for (w in words) {
             if (IsEnglish(w)) {
-                val normalizedW = NormalizeWord(w)
+                val normalizedW = normalizeWord(w)
                 results.add(normalizedW)
             }
         }
@@ -189,13 +178,13 @@ class RunnerThread(var mainActivity: MainActivity, var _text: String) : Thread()
         return true
     }
 
-    fun NormalizeWord(w: String): String {
-        var w = w
+    private fun normalizeWord(word: String): String {
+        var w = word
         w = w.replace("[^a-zA-Z]".toRegex(), "")
         return w.toLowerCase()
     }
 
-    fun CreateQueryString(w: String): String {
+    private fun createQueryString(w: String): String {
         return "https://endic.naver.com/search.nhn?query=$w&searchOption=thesaurus"
     }
 
@@ -240,22 +229,11 @@ class RunnerThread(var mainActivity: MainActivity, var _text: String) : Thread()
         val br = BufferedReader(InputStreamReader(conn.inputStream))
         while (true) {
             val line = br.readLine() ?: break
-            sb.append("""
-    $line
-
-    """.trimIndent())
+            sb.append(line)
+            sb.append(System.getProperty("line.separator"))
         }
         br.close()
         conn.disconnect()
         return sb.toString()
     }
-
-    var message: String? = null
-    private val handler: Handler = object : Handler() {
-        override fun handleMessage(msg: Message) {
-            Toast.makeText(mainActivity, message, Toast.LENGTH_SHORT).show()
-            super.handleMessage(msg)
-        }
-    }
-
 }
