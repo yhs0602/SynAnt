@@ -7,10 +7,17 @@ import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
+import com.google.gson.JsonElement
+import com.google.gson.JsonParser
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.kotlin.toObservable
+import io.reactivex.rxjava3.schedulers.Schedulers
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlinx.android.synthetic.main.main.*
+import org.jsoup.Jsoup
+import java.net.URL
 
 class MainActivity : Activity() {
     val btest = false
@@ -32,18 +39,19 @@ class MainActivity : Activity() {
         startButton.isEnabled = false
         exportButton.isEnabled = false
         Toast.makeText(this, getString(R.string.started), Toast.LENGTH_SHORT).show()
-        try {
-            isDoing = true
-            runner = RunnerThread(this, t)
-            runner!!.start()
-        } catch (e: Exception) {
-            val out = ByteArrayOutputStream()
-            val printStream = PrintStream(out)
-            e.printStackTrace(printStream)
-            val stackTraceString = out.toString() // 찍은 값을 가져오고.
-            Toast.makeText(this, stackTraceString, Toast.LENGTH_LONG).show() //보여 준다
-            Log.e(TAG, "", e)
-        }
+        doWithRX(t)
+//        try {
+//            isDoing = true
+//            runner = RunnerThread(this, t)
+//            runner!!.start()
+//        } catch (e: Exception) {
+//            val out = ByteArrayOutputStream()
+//            val printStream = PrintStream(out)
+//            e.printStackTrace(printStream)
+//            val stackTraceString = out.toString() // 찍은 값을 가져오고.
+//            Toast.makeText(this, stackTraceString, Toast.LENGTH_LONG).show() //보여 준다
+//            Log.e(TAG, "", e)
+//        }
     }
 
     private fun isNetworkUnavailable(): Boolean {
@@ -179,4 +187,64 @@ class MainActivity : Activity() {
             val state = Environment.getExternalStorageState()
             return Environment.MEDIA_MOUNTED == state
         }
+
+
+    private fun doWithRX(text: String) {
+        val result = text.split("\\s".toRegex())
+                .toObservable()
+                .subscribeOn(Schedulers.io())
+                .map {
+                    if (it.isEnglish()) {
+                        Pair(it, it.normalize())
+                    } else {
+                        Pair(it, it)
+                    }
+                }.map {
+                    Pair(it.first, it.second.toQueryStringSynonym())
+                }.map {
+                    Pair(it.first, URL(it.second).openConnection())
+                }.map {
+                    it.second.connect()
+                    Pair(it.first, JsonParser.parseReader(InputStreamReader(it.second.getInputStream())).asJsonObject)
+                }.map {
+                    Pair(it.first, it.second.get("data")
+                            .asJsonObject.get("definitionData")
+                            .asJsonObject.get("definitions")
+                            .asJsonArray
+                    )
+                }.map { wordPair ->
+                    val originalWord = wordPair.first
+                    val definitions = wordPair.second
+                    definitions.toObservable()
+                            .subscribeOn(Schedulers.computation())
+                            .map { definition ->
+                                val jsonOb = definition.asJsonObject
+                                val definitionString = jsonOb.get("definition").asString
+                                Pair(definitionString, jsonOb.get("synonyms").asJsonArray
+                                        .toObservable()
+                                        .subscribeOn(Schedulers.computation())
+                                        .map {
+                                            it.asJsonObject.get("term").asString
+                                        }.toList())
+                            }.map {
+                                "$originalWord(${it.first}): ${it.second.blockingGet().joinToString(", ", "[", "]")}"
+                            }.toList().blockingGet().joinToString(";\n")
+                }.observeOn(AndroidSchedulers.mainThread())
+                .toList().subscribe { result ->
+                    resultText.setText(result.joinToString("\n\n"))
+                    startButton.isEnabled = true
+                    exportButton.isEnabled = true
+                }
+    }
+//                .subscribe({ next ->
+//
+//                }, { error ->
+//
+//                }, {
+//                    OnFinish()
+//                })
+//                    )
+//                }
+
+//}
 }

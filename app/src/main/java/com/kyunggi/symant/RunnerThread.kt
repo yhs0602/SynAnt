@@ -106,7 +106,7 @@ class RunnerThread(val mainActivity: MainActivity, var _text: String) : Thread()
     }
 
     private fun queryBySoup(w: String): Result {
-        val q = createQueryString(w)
+        val q = w.toQueryStringSynonym()
         val r = Result()
         try {
             val doc = Jsoup.connect(q).get()
@@ -145,48 +145,15 @@ class RunnerThread(val mainActivity: MainActivity, var _text: String) : Thread()
         val results: MutableSet<String> = LinkedHashSet()
         val words = text.split(" ".toRegex()).toTypedArray()
         for (w in words) {
-            if (IsEnglish(w)) {
-                val normalizedW = normalizeWord(w)
+            if (w.isEnglish()) {
+                val normalizedW = w.normalize()
                 results.add(normalizedW)
             }
         }
         return results
     }
 
-    fun IsEnglish(word: String?): Boolean {
-        /*
-		int len=word.length();
-		int digits=0;
-		for (int i=0;i < len;++i)
-		{
-			char c=word.charAt(i);
-			if (Character.isDigit(c))
-			{
-				digits++;
-			}
-			else if (!Character.isLetter((c)))
-			{
-				if (new String("-.,!?;_~*#%()\"<>:&'/[]${}+=￦※").indexOf(c) == -1)
-				{
-					return false;
-				}
-			}
-		}
-		if (digits == len)return false;
-		*/
-        //return word.matches("")
-        return true
-    }
 
-    private fun normalizeWord(word: String): String {
-        var w = word
-        w = w.replace("[^a-zA-Z]".toRegex(), "")
-        return w.toLowerCase()
-    }
-
-    private fun createQueryString(w: String): String {
-        return "https://endic.naver.com/search.nhn?query=$w&searchOption=thesaurus"
-    }
 
     inner class Result {
         var word: String? = null
